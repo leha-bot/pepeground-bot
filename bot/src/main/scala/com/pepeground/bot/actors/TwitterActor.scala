@@ -15,11 +15,13 @@ import scalikejdbc.DB
 import scala.util.{Failure, Success}
 
 class TwitterActor extends Actor {
-  import context.dispatcher
-  private lazy val client = TwitterRestClient.apply()
-  val logger = Logger(LoggerFactory.getLogger(this.getClass))
 
-  def receive = {
+  import context.dispatcher
+
+  private lazy val client = TwitterRestClient.apply()
+  val logger: Logger = Logger(LoggerFactory.getLogger(this.getClass))
+
+  def receive: Receive = {
     case Tick =>
       DB readOnly { implicit session =>
         SubscriptionRepository.getList().foreach { s =>
@@ -29,8 +31,9 @@ class TwitterActor extends Actor {
     case s: SubscriptionEntity => grabFromTwitter(s)
   }
 
-  def grabFromTwitter(s: SubscriptionEntity): Unit = {
-    client.userTimelineForUser(s.name, include_rts=false, exclude_replies=true, since_id = s.sinceId).onComplete {
+  def grabFromTwitter(s: SubscriptionEntity): Unit = client
+    .userTimelineForUser(s.name, include_rts = false, exclude_replies = true, since_id = s.sinceId)
+    .onComplete {
       case Success(d: RatedData[Seq[Tweet]]) =>
         DB localTx { implicit session =>
           val tweets: Seq[Tweet] = d.data
@@ -45,14 +48,11 @@ class TwitterActor extends Actor {
         }
       case Failure(_) =>
     }
-  }
 
-  def cleanWords(s: String): List[String] = {
-    s
-      .split("\\s+")
-      .filterNot(s => s == " " || s.isEmpty || s.startsWith("@") ||
-        s.startsWith("https://") || s.startsWith("http://") || s.startsWith("#"))
-      .map(_.toLowerCase)
-      .toList
-  }
+  def cleanWords(s: String): List[String] = s
+    .split("\\s+")
+    .filterNot(s => s == " " || s.isEmpty || s.startsWith("@") ||
+      s.startsWith("https://") || s.startsWith("http://") || s.startsWith("#"))
+    .map(_.toLowerCase)
+    .toList
 }

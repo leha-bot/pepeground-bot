@@ -24,32 +24,42 @@ object PairRepository {
     withSQL {
       select
         .from(PairEntity as p)
-        .where.exists(select.from(ReplyEntity as r).where.eq(r.pairId, p.id))
+        .where
+        .exists(
+          select
+            .from(ReplyEntity as r)
+            .where.eq(r.pairId, p.id)
+        )
         .and.lt(p.createdAt, timeOffset)
         .and.eq(p.chatId, chatId)
         .and.eq(p.firstId, firstIds)
         .and.in(p.secondId, secondIds)
         .limit(3)
-    }.map(rs => PairEntity(p)(rs)).list().apply()
+    }.map(PairEntity(p)(_)).list().apply()
   }
 
-  def getPairBy(chatId: Long, firstId: Option[Long], secondId: Option[Long])(implicit session: DBSession): Option[PairEntity] = {
-    withSQL {
-      select.from(PairEntity as p).where.eq(p.chatId, chatId).and.eq(p.firstId, firstId).and.eq(p.secondId, secondId).limit(1)
-    }.map(rs => PairEntity(p)(rs)).single.apply()
-  }
+  def getPairBy(chatId: Long, firstId: Option[Long], secondId: Option[Long])(implicit session: DBSession): Option[PairEntity] = withSQL {
+    select
+      .from(PairEntity as p)
+      .where.eq(p.chatId, chatId)
+      .and.eq(p.firstId, firstId)
+      .and.eq(p.secondId, secondId)
+      .limit(1)
+  }.map(PairEntity(p)(_)).single.apply()
 
   def createPairBy(chatId: Long, firstId: Option[Long], secondId: Option[Long], updatedAt: DateTime = new DateTime())(implicit session: DBSession): PairEntity = {
     logger.info("Learn new pair for chat id %s".format(chatId))
 
     withSQL {
-      insert.into(PairEntity).namedValues(
-        PairEntity.column.chatId -> chatId,
-        PairEntity.column.firstId -> firstId,
-        PairEntity.column.secondId -> secondId,
-        PairEntity.column.createdAt -> new DateTime(),
-        PairEntity.column.updatedAt -> updatedAt
-      ).onConflictDoNothing()
+      insert
+        .into(PairEntity)
+        .namedValues(
+          PairEntity.column.chatId -> chatId,
+          PairEntity.column.firstId -> firstId,
+          PairEntity.column.secondId -> secondId,
+          PairEntity.column.createdAt -> new DateTime(),
+          PairEntity.column.updatedAt -> updatedAt
+        ).onConflictDoNothing()
     }.update().apply()
 
     getPairBy(chatId, firstId, secondId) match {
@@ -58,19 +68,17 @@ object PairRepository {
     }
   }
 
-  def touch(pairIds: List[Long])(implicit session: DBSession): Unit = {
-    withSQL {
-      update(PairEntity).set(
-        PairEntity.column.updatedAt -> new DateTime()
-      ).where.in(PairEntity.column.id, pairIds)
-    }.update().apply()
-  }
+  def touch(pairIds: List[Long])(implicit session: DBSession): Unit = withSQL {
+    update(PairEntity)
+      .set(PairEntity.column.updatedAt -> new DateTime())
+      .where.in(PairEntity.column.id, pairIds)
+  }.update().apply()
 
-  def getPairsCount(chatId: Long)(implicit session: DBSession): Int = {
-    withSQL {
-      select(count(distinct(p.id))).from(PairEntity as p).where.eq(p.chatId, chatId)
-    }.map(_.int(1)).single.apply().get
-  }
+  def getPairsCount(chatId: Long)(implicit session: DBSession): Int = withSQL {
+    select(count(distinct(p.id)))
+      .from(PairEntity as p)
+      .where.eq(p.chatId, chatId)
+  }.map(_.int(1)).single.apply().get
 
   def removeOld(cleanupLimit: Int)(implicit session: DBSession): List[Long] = {
     val removeLt = new DateTime()
@@ -85,20 +93,15 @@ object PairRepository {
     withSQL {
       delete
         .from(PairEntity)
-        .where
-        .in(
-          PairEntity.column.id,
-          toRemovalIds
-        )
+        .where.in(PairEntity.column.id, toRemovalIds)
     }.update().apply()
 
     toRemovalIds
   }
 
-  def getPairOrCreateBy(chatId: Long, firstId: Option[Long], secondId: Option[Long])(implicit session: DBSession) = {
+  def getPairOrCreateBy(chatId: Long, firstId: Option[Long], secondId: Option[Long])(implicit session: DBSession): PairEntity =
     getPairBy(chatId, firstId, secondId) match {
       case Some(p: PairEntity) => p
       case None => createPairBy(chatId, firstId, secondId)
     }
-  }
 }

@@ -5,9 +5,7 @@ import info.mukel.telegrambot4s.models.Message
 import scalikejdbc.DBSession
 
 object SetGabHandler {
-  def apply(message: Message)(implicit session: DBSession): SetGabHandler = {
-    new SetGabHandler(message)
-  }
+  def apply(message: Message)(implicit session: DBSession): SetGabHandler = new SetGabHandler(message)
 }
 
 class SetGabHandler(message: Message)(implicit session: DBSession) extends GenericHandler(message) {

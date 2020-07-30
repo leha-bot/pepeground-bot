@@ -14,10 +14,8 @@ class ChatRepositoryTest extends FlatSpec with BeforeAndAfter with AutoRollback 
   before {
     DBs.setupAll()
 
-    val flyway: Flyway = new Flyway()
-    val dataSource = ConnectionPool.dataSource(ConnectionPool.DEFAULT_NAME)
+    val flyway: Flyway = Flyway.configure().dataSource(ConnectionPool.dataSource(ConnectionPool.DEFAULT_NAME)).load()
 
-    flyway.setDataSource(dataSource)
     flyway.baseline()
     flyway.migrate()
   }

@@ -10,26 +10,22 @@ import scala.util.Random
 import scala.util.control.Breaks._
 
 class StoryService(words: List[String], context: List[String], chatId: Long, sentences: Option[Int] = None)(implicit session: DBSession) {
+
   var currentSentences: ListBuffer[String] = ListBuffer()
   var currentWordIds: ListBuffer[Long] = ListBuffer()
 
   def generate(): Option[String] = {
-      val currentWords: Map[String, Long] = WordRepository.getByWords(words ++ context).map(w => w.word -> w.id).toMap
-      currentWordIds = words.map(w => currentWords.get(w)).filter(_.isDefined).map(_.get).to[ListBuffer]
+    val currentWords: Map[String, Long] = WordRepository.getByWords(words ++ context).map(w => w.word -> w.id).toMap
+    currentWordIds = words.map(w => currentWords.get(w)).filter(_.isDefined).map(_.get).to[ListBuffer]
 
-      for ( a <- 0 to sentences.getOrElse(Random.nextInt(2) + 1) ) {
-        generateSentence()
-      }
+    for (_ <- 0 to sentences.getOrElse(Random.nextInt(2) + 1)) generateSentence()
+    if (currentSentences.nonEmpty) Some(currentSentences.mkString(" ")) else None
 
-    if (currentSentences.nonEmpty) {
-      Some(currentSentences.mkString(" "))
-    } else {
-      None
-    }
   }
 
 
   private def generateSentence(): Unit = {
+
     var sentence: ListBuffer[String] = ListBuffer()
     var safetyCounter = 50
 
@@ -41,9 +37,9 @@ class StoryService(words: List[String], context: List[String], chatId: Long, sen
     pair = Random.shuffle(PairRepository.getPairWithReplies(chatId, firstWordId, secondWordId)).headOption
 
     breakable {
-      while(true) {
-        if ( safetyCounter < 0 ) break
-        if ( pair.isEmpty ) break
+      while (true) {
+        if (safetyCounter < 0) break
+        if (pair.isEmpty) break
 
         safetyCounter -= 1
 
@@ -55,7 +51,7 @@ class StoryService(words: List[String], context: List[String], chatId: Long, sen
 
             WordRepository.getWordById(pe.secondId.getOrElse(0.toLong)) match {
               case Some(we: WordEntity) =>
-                if(sentence.isEmpty) {
+                if (sentence.isEmpty) {
                   sentence += we.word.toLowerCase
                   currentWordIds -= pe.secondId.getOrElse(0)
                 }
@@ -85,21 +81,15 @@ class StoryService(words: List[String], context: List[String], chatId: Long, sen
       }
     }
 
-    if (sentence.nonEmpty) {
-      currentSentences += setSentenceEnd(sentence.mkString(" ").stripLineEnd)
-    }
+    if (sentence.nonEmpty) currentSentences += setSentenceEnd(sentence.mkString(" ").stripLineEnd)
+
   }
 
-  private def setSentenceEnd(s: String): String = {
-    if(CoreConfig.punctuation.endSentence.contains(s.takeRight(1))) {
-      s
-    } else {
-      "%s%s".format(
-        s,
-        CoreConfig.punctuation.endSentence(Random.nextInt(endSentenceLength))
-      )
-    }
-  }
+  private def setSentenceEnd(s: String): String = if (CoreConfig.punctuation.endSentence.contains(s.takeRight(1))) s
+  else "%s%s".format(
+    s,
+    CoreConfig.punctuation.endSentence(Random.nextInt(endSentenceLength))
+  )
 
   lazy val endSentenceLength: Int = CoreConfig.punctuation.endSentence.length
 }

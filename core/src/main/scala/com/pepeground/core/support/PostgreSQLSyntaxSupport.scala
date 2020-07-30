@@ -12,9 +12,7 @@ object PostgreSQLSyntaxSupport {
       self.append(sqls"ON CONFLICT ON CONSTRAINT ${SQLSyntax.createUnsafely(constraint)} DO UPDATE SET ${sqls.csv(cvs: _*)}")
     }
 
-    def onConflictDoNothing(): InsertSQLBuilder = {
-      self.append(sqls"ON CONFLICT DO NOTHING")
-    }
+    def onConflictDoNothing(): InsertSQLBuilder = self.append(sqls"ON CONFLICT DO NOTHING")
   }
 
   implicit class RichSQLSyntax(val self: sqls.type) extends AnyVal {

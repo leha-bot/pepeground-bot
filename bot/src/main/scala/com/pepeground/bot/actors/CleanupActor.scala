@@ -9,18 +9,15 @@ import org.slf4j.LoggerFactory
 import scalikejdbc.DB
 
 class CleanupActor extends Actor {
-  val logger = Logger(LoggerFactory.getLogger(this.getClass))
+  val logger: Logger = Logger(LoggerFactory.getLogger(this.getClass))
 
-  def receive = {
+  def receive: Receive = {
     case Tick => DB localTx { implicit session =>
       logger.info("START REMOVAL")
       val removedIds: List[Long] = PairRepository.removeOld(Config.bot.cleanupLimit)
 
-      if(removedIds.isEmpty) {
-        logger.info("NOTHING TO REMOVE")
-      } else {
-        logger.info("REMOVED PAIRS %s (%s)".format(removedIds.size, removedIds.mkString(", ")))
-      }
+      if (removedIds.isEmpty) logger.info("NOTHING TO REMOVE")
+      else logger.info("REMOVED PAIRS %s (%s)".format(removedIds.size, removedIds.mkString(", ")))
     }
     case _ => logger.warn("UNKNOWN")
   }

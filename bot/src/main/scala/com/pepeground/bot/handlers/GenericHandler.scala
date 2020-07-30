@@ -23,7 +23,9 @@ class GenericHandler(message: Message)(implicit session: DBSession) {
   }
 
   def isChatChanged: Boolean = chatName != chat.name.getOrElse("") || migrationId != telegramId
+
   def isPrivate: Boolean = chatType == "chat"
+
   def isRandomAnswer: Boolean = scala.util.Random.nextInt(100) < chat.randomChance
 
   def isReplyToBot: Boolean = message.replyToMessage match {
@@ -34,9 +36,7 @@ class GenericHandler(message: Message)(implicit session: DBSession) {
     case None => false
   }
 
-  def hasAnchors: Boolean = {
-    hasText && (words.exists(Config.bot.anchors.contains(_)) || text.getOrElse("").contains(Config.bot.name))
-  }
+  def hasAnchors: Boolean = hasText && (words.exists(Config.bot.anchors.contains(_)) || text.getOrElse("").contains(Config.bot.name))
 
   def hasEntities: Boolean = message.entities match {
     case Some(s: Seq[MessageEntity]) => s.nonEmpty
@@ -63,7 +63,7 @@ class GenericHandler(message: Message)(implicit session: DBSession) {
     case None => false
   }
 
-  def getWords(): List[String] = {
+  def getWords: List[String] = {
     var textCopy: String = text match {
       case Some(s: String) => s
       case None => return List()
@@ -100,8 +100,8 @@ class GenericHandler(message: Message)(implicit session: DBSession) {
   }
 
   lazy val context: List[String] = Random.shuffle(ContextRepository.getContext(chatContext, 10)).take(3)
-  lazy val fullContext: List[String] = Random.shuffle(ContextRepository.getContext(chatContext, 50))
-  lazy val words: List[String] = getWords()
+  lazy val fullContext: List[String] = Random.shuffle(ContextRepository.getContext(chatContext))
+  lazy val words: List[String] = getWords
   lazy val text: Option[String] = message.text
   lazy val chatContext: String = s"chat_context/${chat.id}"
 }
