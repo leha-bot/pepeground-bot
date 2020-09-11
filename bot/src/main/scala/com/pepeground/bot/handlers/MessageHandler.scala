@@ -8,9 +8,7 @@ import org.slf4j.LoggerFactory
 import scalikejdbc.DBSession
 
 object MessageHandler {
-  def apply(message: Message)(implicit session: DBSession): MessageHandler = {
-    new MessageHandler(message)
-  }
+  def apply(message: Message)(implicit session: DBSession): MessageHandler = new MessageHandler(message)
 }
 
 class MessageHandler(message: Message)(implicit session: DBSession) extends GenericHandler(message) {

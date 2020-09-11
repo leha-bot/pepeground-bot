@@ -1,0 +1,18 @@
+plugins {
+    id 'scala'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
+}
+
+mainClassName = 'com.pepeground.bot.Main'
+
+repositories { mavenCentral() }
+
+dependencies {
+    compile project(':core')
+    compile("com.enragedginger:akka-quartz-scheduler_2.12:1.8.4-akka-2.6.x")
+    compile("com.danielasfregola:twitter4s_2.12:6.2")
+    compile("info.mukel:telegrambot4s_2.12:2.9.5")
+    testCompile("org.scalatest:scalatest_2.12:3.0.1")
+    testCompile("org.scalikejdbc:scalikejdbc-test_2.12:3.5.0")
+}
