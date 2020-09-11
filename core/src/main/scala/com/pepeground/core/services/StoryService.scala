@@ -2,6 +2,7 @@ package com.pepeground.core.services
 
 import com.pepeground.core.CoreConfig
 import com.pepeground.core.entities.{PairEntity, ReplyEntity, WordEntity}
+import com.pepeground.core.repositories.PairRepository.getPairWithReplies
 import com.pepeground.core.repositories.{PairRepository, ReplyRepository, WordRepository}
 import scalikejdbc._
 
@@ -16,7 +17,7 @@ class StoryService(words: List[String], context: List[String], chatId: Long, sen
 
   def generate(): Option[String] = {
     val currentWords: Map[String, Long] = WordRepository.getByWords(words ++ context).map(w => w.word -> w.id).toMap
-    currentWordIds = words.map(w => currentWords.get(w)).filter(_.isDefined).map(_.get).to[ListBuffer]
+    currentWordIds = words.map(currentWords.get).filter(_.isDefined).map(_.get).to[ListBuffer]
 
     for (_ <- 0 to sentences.getOrElse(Random.nextInt(2) + 1)) generateSentence()
     if (currentSentences.nonEmpty) Some(currentSentences.mkString(" ")) else None
@@ -34,7 +35,7 @@ class StoryService(words: List[String], context: List[String], chatId: Long, sen
 
     var pair: Option[PairEntity] = None
 
-    pair = Random.shuffle(PairRepository.getPairWithReplies(chatId, firstWordId, secondWordId)).headOption
+    pair = Random.shuffle(getPairWithReplies(chatId, firstWordId, secondWordId)).headOption
 
     breakable {
       while (true) {
@@ -77,7 +78,7 @@ class StoryService(words: List[String], context: List[String], chatId: Long, sen
             break
         }
 
-        pair = Random.shuffle(PairRepository.getPairWithReplies(chatId, firstWordId, secondWordId)).headOption
+        pair = Random.shuffle(getPairWithReplies(chatId, firstWordId, secondWordId)).headOption
       }
     }
 

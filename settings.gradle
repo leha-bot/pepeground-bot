@@ -1,2 +1,2 @@
-include 'bot'
 include 'core'
+include 'bot'

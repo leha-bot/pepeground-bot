@@ -21,5 +21,4 @@ before_script:
   - psql -c 'create database pepeground_test;' -U postgres
 
 script:
-  - sbt coverage core/test
-  - sbt bot/assembly
+  - gradle bot:shadowJar

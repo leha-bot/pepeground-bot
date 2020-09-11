@@ -19,7 +19,7 @@ def locally():
 
 def assembly():
     with locally():
-        run("sbt assembly")
+        run("gradle bot:shadowJar")
 
 
 def production():
@@ -31,7 +31,7 @@ def setup():
         run("mkdir -p %s" % env.base_dir)
 
 def upload():
-        put("bot/target/scala-2.12/bot-assembly-0.1.jar", "%s/bot.jar" % (env.base_dir))
+        put("bot/build/libs/bot-all.jar", "%s/bot.jar" % (env.base_dir))
 
 def restart():
         run("sudo systemctl restart pepeground")

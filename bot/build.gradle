@@ -1,48 +1,18 @@
-apply plugin: 'scala'
-apply plugin: 'application'
-
-group = 'net.kyivstar.lib.client'
-version = '1.1.0'
-def baseName = 'kafka-unit'
-
-jar {
-    version
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-    manifest {
-        attributes("Implementation-Title": baseName,
-                "Implementation-Version": version,
-                "Built-Date": new Date())
-    }
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+    id 'scala'
+    id 'application'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-
-artifacts {
-    archives sourcesJar
-}
+mainClassName = 'com.pepeground.bot.Main'
 
 repositories { mavenCentral() }
 
-
 dependencies {
-    implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("com.typesafe:config:1.4.0")
-    implementation("org.scalikejdbc:scalikejdbc_2.12:3.5.0")
-    implementation("org.scalikejdbc:scalikejdbc-joda-time_2.12:3.5.0")
-    implementation("org.scalikejdbc:scalikejdbc-config_2.12:3.5.0")
-    implementation("org.postgresql:postgresql:42.2.14")
-    implementation("org.apache.commons:commons-dbcp2:2.7.0")
-    implementation("joda-time:joda-time:2.10.6")
-    implementation('net.debasishg:redisclient_2.12:3.30')
-    implementation("com.typesafe.akka:akka-actor_2.12:2.6.9")
-    implementation("com.typesafe.scala-logging:scala-logging_2.12:3.9.2")
-    implementation("org.flywaydb:flyway-core:6.5.3")
-    implementation("io.sentry:sentry-logback:1.7.30")
+    compile project(':core')
+    compile("com.enragedginger:akka-quartz-scheduler_2.12:1.8.4-akka-2.6.x")
+    compile("com.danielasfregola:twitter4s_2.12:6.2")
+    compile("info.mukel:telegrambot4s_2.12:2.9.5")
     testImplementation("org.scalatest:scalatest_2.12:3.0.1")
     testImplementation("org.scalikejdbc:scalikejdbc-test_2.12:3.5.0")
 }
