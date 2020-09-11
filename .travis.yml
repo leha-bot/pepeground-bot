@@ -17,11 +17,6 @@ addons:
   postgresql: "9.6"
 
 before_script:
-  - wget http://services.gradle.org/distributions/gradle-5.3-bin.zip
-  - unzip -qq gradle-5.3-bin.zip
-  - export GRADLE_HOME=$PWD/gradle-5.3
-  - export PATH=$GRADLE_HOME/bin:$PATH
-  - gradle -v
   - cp core/src/test/resources/application.conf.example core/src/test/resources/application.conf
   - psql -c 'create database pepeground_test;' -U postgres
 
